@@ -2,13 +2,14 @@ package groups
 
 import (
 	"errors"
+	"strconv"
+
 	"github.com/RadicalApp/libsignal-protocol-go/cipher"
 	"github.com/RadicalApp/libsignal-protocol-go/ecc"
 	"github.com/RadicalApp/libsignal-protocol-go/groups/ratchet"
 	"github.com/RadicalApp/libsignal-protocol-go/groups/state/record"
 	"github.com/RadicalApp/libsignal-protocol-go/groups/state/store"
 	"github.com/RadicalApp/libsignal-protocol-go/protocol"
-	"strconv"
 )
 
 // NewGroupCipher will return a new group message cipher that can be used for
@@ -48,7 +49,7 @@ func (c *GroupCipher) Encrypt(plaintext []byte) (protocol.CiphertextMessage, err
 	}
 
 	// Encrypt the plaintext.
-	ciphertext, err := cipher.Encrypt(senderKey.Iv(), senderKey.CipherKey(), plaintext)
+	ciphertext, err := cipher.EncryptCbc(senderKey.Iv(), senderKey.CipherKey(), plaintext)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +95,7 @@ func (c *GroupCipher) Decrypt(senderKeyMessage *protocol.SenderKeyMessage) ([]by
 	}
 
 	// Decrypt the message ciphertext.
-	plaintext, err := cipher.Decrypt(senderKey.Iv(), senderKey.CipherKey(), senderKeyMessage.Ciphertext())
+	plaintext, err := cipher.DecryptCbc(senderKey.Iv(), senderKey.CipherKey(), senderKeyMessage.Ciphertext())
 	if err != nil {
 		return nil, err
 	}

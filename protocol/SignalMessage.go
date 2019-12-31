@@ -73,24 +73,26 @@ func NewSignalMessage(messageVersion int, counter, previousCounter uint32, macKe
 	senderRatchetKey ecc.ECPublicKeyable, ciphertext []byte, senderIdentityKey,
 	receiverIdentityKey *identity.Key, serializer SignalMessageSerializer) (*SignalMessage, error) {
 
+	version := []byte(strconv.Itoa(messageVersion))
 	// Build the signal message structure with the given data.
 	structure := &SignalMessageStructure{
-		Version:         messageVersion,
 		Counter:         counter,
 		PreviousCounter: previousCounter,
 		RatchetKey:      senderRatchetKey.Serialize(),
 		CipherText:      ciphertext,
 	}
 
+	serialized := append(version, serializer.Serialize(structure)...)
 	// Get the message authentication code from the serialized structure.
 	mac, err := getMac(
 		messageVersion, senderIdentityKey, receiverIdentityKey,
-		macKey, serializer.Serialize(structure),
+		macKey, serialized,
 	)
 	if err != nil {
 		return nil, err
 	}
 	structure.Mac = mac
+	structure.Version = messageVersion
 
 	// Generate a SignalMessage with the structure.
 	whisperMessage, err := NewSignalMessageFromStruct(structure, serializer)
@@ -156,6 +158,9 @@ func (s *SignalMessage) VerifyMac(messageVersion int, senderIdentityKey,
 		return err
 	}
 	signalMessage.structure.Mac = nil
+	signalMessage.structure.Version = 0
+	version := []byte(strconv.Itoa(s.MessageVersion()))
+	serialized := append(version, signalMessage.Serialize()...)
 
 	// Calculate the message authentication code from the serialized structure.
 	ourMac, err := getMac(
@@ -163,7 +168,7 @@ func (s *SignalMessage) VerifyMac(messageVersion int, senderIdentityKey,
 		senderIdentityKey,
 		receiverIdentityKey,
 		macKey,
-		signalMessage.Serialize(),
+		serialized,
 	)
 	if err != nil {
 		logger.Error(err)

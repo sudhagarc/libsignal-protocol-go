@@ -1,13 +1,14 @@
 package tests
 
 import (
+	"testing"
+
 	"github.com/RadicalApp/libsignal-protocol-go/groups"
 	"github.com/RadicalApp/libsignal-protocol-go/keys/prekey"
 	"github.com/RadicalApp/libsignal-protocol-go/logger"
 	"github.com/RadicalApp/libsignal-protocol-go/protocol"
 	"github.com/RadicalApp/libsignal-protocol-go/serialize"
 	"github.com/RadicalApp/libsignal-protocol-go/session"
-	"testing"
 )
 
 // TestGroupSessionBuilder checks building of a group session.
@@ -76,18 +77,9 @@ func TestGroupSessionBuilder(t *testing.T) {
 		t.FailNow()
 	}
 
-	// Create a session builder
-	logger.Debug("Building receiver's (Bob) session...")
-	unsignedPreKeyID, err := bob.sessionBuilder.Process(receivedMessage)
-	if err != nil {
-		logger.Error("Unable to process prekeysignal message: ", err)
-		t.FailNow()
-	}
-	logger.Debug("Got PreKeyID: ", unsignedPreKeyID)
-
 	// Try and decrypt the senderkey distribution message
 	bobAliceSessionCipher := session.NewCipher(bob.sessionBuilder, alice.address)
-	msg, err := bobAliceSessionCipher.Decrypt(receivedMessage.WhisperMessage())
+	msg, err := bobAliceSessionCipher.DecryptMessage(receivedMessage)
 	if err != nil {
 		logger.Error("Unable to decrypt message: ", err)
 		t.FailNow()

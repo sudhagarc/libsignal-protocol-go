@@ -51,9 +51,12 @@ type PendingPreKey struct {
 
 // structure will return a serializeable structure of the pending prekey.
 func (p *PendingPreKey) structure() *PendingPreKeyStructure {
-	return &PendingPreKeyStructure{
-		PreKeyID:       p.preKeyID,
-		SignedPreKeyID: p.signedPreKeyID,
-		BaseKey:        p.baseKey.Serialize(),
+	if p != nil {
+		return &PendingPreKeyStructure{
+			PreKeyID:       p.preKeyID,
+			SignedPreKeyID: p.signedPreKeyID,
+			BaseKey:        p.baseKey.Serialize(),
+		}
 	}
+	return nil
 }

@@ -3,6 +3,7 @@ package session
 
 import (
 	"errors"
+
 	"github.com/RadicalApp/libsignal-protocol-go/ecc"
 	"github.com/RadicalApp/libsignal-protocol-go/keys/prekey"
 	"github.com/RadicalApp/libsignal-protocol-go/logger"
@@ -79,10 +80,7 @@ type Builder struct {
 
 // Process builds a new session from a session record and pre
 // key signal message.
-func (b *Builder) Process(message *protocol.PreKeySignalMessage) (unsignedPreKeyID *optional.Uint32, err error) {
-
-	// Load or create session record for this session.
-	sessionRecord := b.sessionStore.LoadSession(b.remoteAddress)
+func (b *Builder) Process(sessionRecord *record.Session, message *protocol.PreKeySignalMessage) (unsignedPreKeyID *optional.Uint32, err error) {
 
 	// Check to see if the keys are trusted.
 	theirIdentityKey := message.IdentityKey()
@@ -110,7 +108,6 @@ func (b *Builder) processV3(sessionRecord *record.Session,
 	message *protocol.PreKeySignalMessage) (unsignedPreKeyID *optional.Uint32, err error) {
 
 	logger.Debug("Processing message with PreKeyID: ", message.PreKeyID())
-
 	// Check to see if we've already set up a session for this V3 message.
 	sessionExists := sessionRecord.HasSessionState(
 		message.MessageVersion(),
@@ -118,11 +115,14 @@ func (b *Builder) processV3(sessionRecord *record.Session,
 	)
 	if sessionExists {
 		logger.Warning("We've already setup a session for this V3 message, letting bundled message fall through...")
-		return nil, nil
+		return optional.NewEmptyUint32(), nil
 	}
 
 	// Load our signed prekey from our signed prekey store.
 	ourSignedPreKeyRecord := b.signedPreKeyStore.LoadSignedPreKey(message.SignedPreKeyID())
+	if ourSignedPreKeyRecord == nil {
+		return nil, errors.New(noSignedPreKeyError)
+	}
 	ourSignedPreKey := ourSignedPreKeyRecord.KeyPair()
 
 	// Build the parameters of the session.
@@ -170,8 +170,6 @@ func (b *Builder) processV3(sessionRecord *record.Session,
 
 	// Remove the PreKey from our store and return the message prekey id if it is valid.
 	if message.PreKeyID() != nil && message.PreKeyID().Value != medium.MaxValue {
-		logger.Debug("Removing preKey from our prekey store: ", message.PreKeyID().Value)
-		b.preKeyStore.RemovePreKey(message.PreKeyID().Value)
 		return message.PreKeyID(), nil
 	}
 	return nil, nil

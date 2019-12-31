@@ -15,8 +15,9 @@ type defaultLogger struct {
 // caller is allowed to log.
 func (d *defaultLogger) log(level, caller, msg string) {
 	if !d.shouldLog(caller) {
-		return
+		// return
 	}
+	fmt.Println(msg)
 	t := time.Now()
 	fmt.Println(
 		"["+level+"]",
@@ -54,12 +55,12 @@ func (d *defaultLogger) ensureNamespaces() {
 
 // Debug is used to log debug messages.
 func (d *defaultLogger) Debug(caller, msg string) {
-	d.log("DEBUG", caller, msg)
+	// d.log("DEBUG", caller, msg)
 }
 
 // Info is used to log info messages.
 func (d *defaultLogger) Info(caller, msg string) {
-	d.log("INFO", caller, msg)
+	// d.log("INFO", caller, msg)
 }
 
 // Warning is used to log warning messages.

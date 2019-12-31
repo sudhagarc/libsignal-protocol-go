@@ -18,12 +18,12 @@ func NewProtoBufSerializer() *Serializer {
 
 	serializer.SignalMessage = &ProtoBufSignalMessageSerializer{}
 	serializer.PreKeySignalMessage = &ProtoBufPreKeySignalMessageSerializer{}
+	serializer.SenderKeyMessage = &ProtoBufSenderKeyMessageSerializer{}
+	serializer.SenderKeyDistributionMessage = &ProtoBufSenderKeyDistributionMessageSerializer{}
 	serializer.SignedPreKeyRecord = &JSONSignedPreKeyRecordSerializer{}
 	serializer.PreKeyRecord = &JSONPreKeyRecordSerializer{}
 	serializer.State = &JSONStateSerializer{}
 	serializer.Session = &JSONSessionSerializer{}
-	serializer.SenderKeyMessage = &ProtoBufSenderKeyMessageSerializer{}
-	serializer.SenderKeyDistributionMessage = &ProtoBufSenderKeyDistributionMessageSerializer{}
 	serializer.SenderKeyRecord = &JSONSenderKeySessionSerializer{}
 	serializer.SenderKeyState = &JSONSenderKeyStateSerializer{}
 
@@ -32,6 +32,10 @@ func NewProtoBufSerializer() *Serializer {
 
 func highBitsToInt(value byte) int {
 	return int((value & 0xFF) >> 4)
+}
+
+func intsToByteHighAndLow(highValue, lowValue int) byte {
+	return byte((highValue<<4 | lowValue) & 0xFF)
 }
 
 // ProtoBufSignalMessageSerializer is a structure for serializing signal messages into
@@ -53,13 +57,13 @@ func (j *ProtoBufSignalMessageSerializer) Serialize(signalMessage *protocol.Sign
 	}
 
 	if signalMessage.Version != 0 {
-		serialized = append([]byte(strconv.Itoa(signalMessage.Version)), message...)
+		serialized = append(serialized, []byte(strconv.Itoa(signalMessage.Version))...)
 	}
+	serialized = append(serialized, message...)
 
 	if signalMessage.Mac != nil {
 		serialized = append(serialized, signalMessage.Mac...)
 	}
-	logger.Debug("Serialize result: ", string(serialized))
 
 	return serialized
 }
@@ -118,7 +122,7 @@ func (j *ProtoBufPreKeySignalMessageSerializer) Serialize(signalMessage *protoco
 	}
 
 	serialized := append([]byte(strconv.Itoa(signalMessage.Version)), message...)
-	logger.Debug("Serialize result: ", string(serialized))
+	logger.Debug("Serialize PreKeySignalMessage result: ", serialized)
 	return serialized
 }
 
@@ -132,6 +136,7 @@ func (j *ProtoBufPreKeySignalMessageSerializer) Deserialize(serialized []byte) (
 		logger.Error("Error deserializing prekey signal message: ", err)
 		return nil, err
 	}
+
 	preKeySignalMessage := protocol.PreKeySignalMessageStructure{
 		Version:        version,
 		RegistrationID: sm.GetRegistrationId(),
@@ -141,10 +146,6 @@ func (j *ProtoBufPreKeySignalMessageSerializer) Deserialize(serialized []byte) (
 		Message:        sm.GetMessage(),
 		PreKeyID:       optional.NewOptionalUint32(sm.GetPreKeyId()),
 	}
-
-	// if sm.GetPreKeyId() != 0 {
-	// 	preKeySignalMessage.PreKeyID = optional.NewOptionalUint32(sm.GetPreKeyId())
-	// }
 
 	return &preKeySignalMessage, nil
 }
@@ -169,7 +170,7 @@ func (j *ProtoBufSenderKeyDistributionMessageSerializer) Serialize(message *prot
 
 	version := strconv.Itoa(int(message.Version))
 	serialized = append([]byte(version), serialized...)
-	logger.Debug("Serialize result: ", string(serialized))
+	logger.Debug("Serialize result: ", serialized)
 	return serialized
 }
 
@@ -221,7 +222,7 @@ func (j *ProtoBufSenderKeyMessageSerializer) Serialize(message *protocol.SenderK
 	if message.Signature != nil {
 		serialized = append(serialized, message.Signature...)
 	}
-	logger.Debug("Serialize result: ", string(serialized))
+	logger.Debug("Serialize result: ", serialized)
 	return serialized
 }
 

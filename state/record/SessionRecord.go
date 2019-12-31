@@ -130,24 +130,14 @@ func (r *Session) PreviousSessionStates() []*State {
 // base key exists in the current and previous states.
 func (r *Session) HasSessionState(version int, senderBaseKey []byte) bool {
 	// Ensure the session state version is identical to this one.
-	if r.sessionState.Version() == version {
-		return false
-	}
-
-	// Ensure the session state has a sender base key.
-	if r.sessionState.SenderBaseKey() == nil {
-		return false
-	}
-
-	// Check our session state and compare the base key to this base key.
-	if bytes.Compare(senderBaseKey, r.sessionState.SenderBaseKey()) == 0 {
+	if r.sessionState.Version() == version && (bytes.Compare(senderBaseKey, r.sessionState.SenderBaseKey()) == 0) {
 		return true
 	}
 
 	// Loop through all of our previous states and see if this
 	// exists in our state.
 	for i := range r.previousStates {
-		if bytes.Compare(senderBaseKey, r.previousStates[i].SenderBaseKey()) == 0 {
+		if r.previousStates[i].Version() == version && bytes.Compare(senderBaseKey, r.previousStates[i].SenderBaseKey()) == 0 {
 			return true
 		}
 	}

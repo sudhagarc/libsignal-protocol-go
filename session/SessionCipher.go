@@ -27,13 +27,15 @@ func NewCipher(builder *Builder, remoteAddress *protocol.SignalAddress) *Cipher 
 		signalMessageSerializer: builder.serializer.SignalMessage,
 		preKeyStore:             builder.preKeyStore,
 		remoteAddress:           remoteAddress,
+		builder:                 builder,
+		identityKeyStore:        builder.identityKeyStore,
 	}
 
 	return cipher
 }
 
-func NewCipherFromSession(session *record.Session, remoteAddress *protocol.SignalAddress,
-	sessionStore store.Session, preKeyStore store.PreKey,
+func NewCipherFromSession(remoteAddress *protocol.SignalAddress,
+	sessionStore store.Session, preKeyStore store.PreKey, identityKeyStore store.IdentityKey,
 	preKeyMessageSerializer protocol.PreKeySignalMessageSerializer,
 	signalMessageSerializer protocol.SignalMessageSerializer) *Cipher {
 	cipher := &Cipher{
@@ -42,6 +44,7 @@ func NewCipherFromSession(session *record.Session, remoteAddress *protocol.Signa
 		signalMessageSerializer: signalMessageSerializer,
 		preKeyStore:             preKeyStore,
 		remoteAddress:           remoteAddress,
+		identityKeyStore:        identityKeyStore,
 	}
 
 	return cipher
@@ -56,6 +59,8 @@ type Cipher struct {
 	signalMessageSerializer protocol.SignalMessageSerializer
 	preKeyStore             store.PreKey
 	remoteAddress           *protocol.SignalAddress
+	builder                 *Builder
+	identityKeyStore        store.IdentityKey
 }
 
 // Encrypt will take the given message in bytes and return an object that follows
@@ -117,8 +122,11 @@ func (d *Cipher) Encrypt(plaintext []byte) (protocol.CiphertextMessage, error) {
 	}
 
 	sessionState.SetSenderChainKey(chainKey.NextKey())
+	if !d.identityKeyStore.IsTrustedIdentity(d.remoteAddress, sessionState.RemoteIdentityKey()) {
+		// return err
+	}
+	d.identityKeyStore.SaveIdentity(d.remoteAddress, sessionState.RemoteIdentityKey())
 	d.sessionStore.StoreSession(d.remoteAddress, sessionRecord)
-
 	return ciphertextMessage, nil
 }
 
@@ -144,10 +152,38 @@ func (d *Cipher) DecryptAndGetKey(ciphertextMessage *protocol.SignalMessage) ([]
 		return nil, nil, err
 	}
 
+	if !d.identityKeyStore.IsTrustedIdentity(d.remoteAddress, sessionRecord.SessionState().RemoteIdentityKey()) {
+		// return err
+	}
+	d.identityKeyStore.SaveIdentity(d.remoteAddress, sessionRecord.SessionState().RemoteIdentityKey())
+
 	// Store the session record in our session store.
 	d.sessionStore.StoreSession(d.remoteAddress, sessionRecord)
-
 	return plaintext, messageKeys, nil
+}
+
+func (d *Cipher) DecryptMessage(ciphertextMessage *protocol.PreKeySignalMessage) ([]byte, error) {
+	plaintext, _, err := d.DecryptMessageReturnKey(ciphertextMessage)
+	return plaintext, err
+}
+
+func (d *Cipher) DecryptMessageReturnKey(ciphertextMessage *protocol.PreKeySignalMessage) ([]byte, *message.Keys, error) {
+	// Load or create session record for this session.
+	sessionRecord := d.sessionStore.LoadSession(d.remoteAddress)
+	unsignedPreKeyID, err := d.builder.Process(sessionRecord, ciphertextMessage)
+	if err != nil {
+		return nil, nil, err
+	}
+	plaintext, keys, err := d.DecryptWithRecord(sessionRecord, ciphertextMessage.WhisperMessage())
+	if err != nil {
+		return nil, nil, err
+	}
+	// Store the session record in our session store.
+	d.sessionStore.StoreSession(d.remoteAddress, sessionRecord)
+	if !unsignedPreKeyID.IsEmpty {
+		d.preKeyStore.RemovePreKey(unsignedPreKeyID.Value)
+	}
+	return plaintext, keys, nil
 }
 
 // DecryptWithKey will decrypt the given message using the given symmetric key. This
@@ -317,14 +353,14 @@ func getOrCreateChainKey(sessionState *record.State, theirEphemeral ecc.ECPublic
 // the plaintext bytes.
 func decrypt(keys *message.Keys, body []byte) ([]byte, error) {
 	logger.Debug("Using cipherKey: ", keys.CipherKey())
-	return cipher.Decrypt(keys.Iv(), keys.CipherKey(), bytehelper.CopySlice(body))
+	return cipher.DecryptCbc(keys.Iv(), keys.CipherKey(), bytehelper.CopySlice(body))
 }
 
 // encrypt will use the given cipher, message keys, and plaintext bytes
 // and return ciphertext bytes.
 func encrypt(messageKeys *message.Keys, plaintext []byte) ([]byte, error) {
 	logger.Debug("Using cipherKey: ", messageKeys.CipherKey())
-	return cipher.Encrypt(messageKeys.Iv(), messageKeys.CipherKey(), plaintext)
+	return cipher.EncryptCbc(messageKeys.Iv(), messageKeys.CipherKey(), plaintext)
 }
 
 // Max is a uint32 implementation of math.Max

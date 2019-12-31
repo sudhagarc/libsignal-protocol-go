@@ -173,11 +173,14 @@ func (k *SenderKeyState) structure() *SenderKeyStateStructure {
 	}
 
 	// Build and return our state structure.
-	return &SenderKeyStateStructure{
-		Keys:              keys,
-		KeyID:             k.keyID,
-		SenderChainKey:    ratchet.NewStructFromSenderChainKey(k.senderChainKey),
-		SigningKeyPrivate: bytehelper.ArrayToSlice(k.signingKeyPair.PrivateKey().Serialize()),
-		SigningKeyPublic:  k.signingKeyPair.PublicKey().Serialize(),
+	s := &SenderKeyStateStructure{
+		Keys:             keys,
+		KeyID:            k.keyID,
+		SenderChainKey:   ratchet.NewStructFromSenderChainKey(k.senderChainKey),
+		SigningKeyPublic: k.signingKeyPair.PublicKey().Serialize(),
 	}
+	if k.signingKeyPair.PrivateKey() != nil {
+		s.SigningKeyPrivate = bytehelper.ArrayToSlice(k.signingKeyPair.PrivateKey().Serialize())
+	}
+	return s
 }

@@ -3,10 +3,11 @@ package ecc
 import (
 	"crypto/rand"
 	"errors"
+	"io"
+
 	"github.com/RadicalApp/complete"
 	"github.com/RadicalApp/libsignal-protocol-go/logger"
 	"golang.org/x/crypto/curve25519"
-	"io"
 )
 
 // DjbType is the Diffie-Hellman curve type (curve25519) created by D. J. Bernstein.
@@ -28,9 +29,28 @@ func DecodePoint(bytes []byte, offset int) (ECPublicKeyable, error) {
 	}
 }
 
+func CreateKeyPair(privateKey []byte) *ECKeyPair {
+	var private, public [32]byte
+	copy(private[:], privateKey)
+
+	private[0] &= 248
+	private[31] &= 127
+	private[31] |= 64
+
+	curve25519.ScalarBaseMult(&public, &private)
+
+	// Put data into our keypair struct
+	djbECPub := NewDjbECPublicKey(public)
+	djbECPriv := NewDjbECPrivateKey(private)
+	keypair := NewECKeyPair(djbECPub, djbECPriv)
+
+	logger.Debug("Returning keypair: ", keypair)
+	return keypair
+}
+
 // GenerateKeyPair returns an EC Key Pair.
 func GenerateKeyPair() (*ECKeyPair, error) {
-	logger.Debug("Generating EC Key Pair...")
+	// logger.Debug("Generating EC Key Pair...")
 	// Get cryptographically secure random numbers.
 	random := rand.Reader
 
@@ -55,7 +75,7 @@ func GenerateKeyPair() (*ECKeyPair, error) {
 	djbECPriv := NewDjbECPrivateKey(private)
 	keypair := NewECKeyPair(djbECPub, djbECPriv)
 
-	logger.Debug("Returning keypair: ", keypair)
+	// logger.Debug("Returning keypair: ", keypair)
 
 	return keypair, nil
 }
