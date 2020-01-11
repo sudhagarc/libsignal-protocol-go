@@ -1,0 +1,4 @@
+name: signal
+dependencies:
+  ffi: ^0.1.3
+

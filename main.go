@@ -1,15 +1,23 @@
 package main
 
+import "C"
+
 import (
 	"encoding/base64"
-	"fmt"
+	"encoding/json"
 
 	"github.com/RadicalApp/libsignal-protocol-go/ecc"
 	"github.com/RadicalApp/libsignal-protocol-go/logger"
 	"github.com/RadicalApp/libsignal-protocol-go/util/keyhelper"
 )
 
-func generateIdentityKeyPair() interface{} {
+type Key struct {
+	Pub  []byte `json:"pub"`
+	Priv []byte `json:"priv"`
+}
+
+//export GenerateIdentityKeyPair
+func GenerateIdentityKeyPair() interface{} {
 	identityKeyPair, err := keyhelper.GenerateIdentityKeyPair()
 	if err != nil {
 		logger.Error(err)
@@ -22,20 +30,23 @@ func generateIdentityKeyPair() interface{} {
 	return map[string]interface{}{"pub": pub, "priv": priv}
 }
 
-func generateKeyPair() interface{} {
+//export GenerateKeyPair
+func GenerateKeyPair(keyStr *string) int {
 	keyPair, err := ecc.GenerateKeyPair()
 	if err != nil {
-		logger.Error(err)
-		return nil
+		*keyStr = ""
+		return 0
 	}
 	public := keyPair.PublicKey().Serialize()
 	private := keyPair.PrivateKey().Serialize()
-	pub := base64.StdEncoding.EncodeToString(public)
-	priv := base64.StdEncoding.EncodeToString(private[:])
-	return map[string]interface{}{"pub": pub, "priv": priv}
+	key := Key{
+		Pub:  public,
+		Priv: private[:],
+	}
+	k, _ := json.Marshal(key)
+	*keyStr = string(k)
+	return 1
 }
 
 func main() {
-	k := generateIdentityKeyPair()
-	fmt.Println(k)
 }
