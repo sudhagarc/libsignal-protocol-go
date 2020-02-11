@@ -49,7 +49,7 @@ func (i *MixinIdentityKeyStore) SaveIdentity(address *protocol.SignalAddress, id
 
 func (i *MixinIdentityKeyStore) IsTrustedIdentity(address *protocol.SignalAddress, identityKey *identity.Key) bool {
 	result := js.Global().Get("signalDao").Call("getIdentityKey", address.Name())
-	if result == js.Undefined() {
+	if result.IsUndefined() {
 		return true
 	}
 	public, _ := base64.StdEncoding.DecodeString(result.Get("public_key").String())
@@ -73,7 +73,7 @@ type MixinPreKeyStore struct {
 
 func (i *MixinPreKeyStore) LoadPreKey(preKeyID uint32) *record.PreKey {
 	result := js.Global().Get("signalDao").Call("getPreKey", preKeyID)
-	if result == js.Undefined() {
+	if result.IsUndefined() {
 		return nil
 	}
 	recordBytes := []byte(result.Get("record").String())
@@ -91,7 +91,7 @@ func (i *MixinPreKeyStore) StorePreKey(preKeyID uint32, preKeyRecord *record.Pre
 
 func (i *MixinPreKeyStore) ContainsPreKey(preKeyID uint32) bool {
 	result := js.Global().Get("signalDao").Call("getPreKey", preKeyID)
-	if result == js.Undefined() {
+	if result.IsUndefined() {
 		return false
 	}
 	return true
@@ -114,7 +114,7 @@ type MixinSessionStore struct {
 
 func (i *MixinSessionStore) LoadSession(address *protocol.SignalAddress) *record.Session {
 	result := js.Global().Get("signalDao").Call("getSession", address.Name(), address.DeviceID())
-	if result == js.Undefined() {
+	if result.IsUndefined() {
 		sessionRecord := record.NewSession(i.serializer.Session, i.serializer.State)
 		return sessionRecord
 	}
@@ -143,7 +143,7 @@ func (i *MixinSessionStore) StoreSession(remoteAddress *protocol.SignalAddress, 
 
 func (i *MixinSessionStore) ContainsSession(remoteAddress *protocol.SignalAddress) bool {
 	result := js.Global().Get("signalDao").Call("getSession", remoteAddress.Name(), remoteAddress.DeviceID())
-	if result == js.Undefined() {
+	if result.IsUndefined() {
 		return false
 	}
 	return true
@@ -171,7 +171,7 @@ type MixinSignedPreKeyStore struct {
 func (i *MixinSignedPreKeyStore) LoadSignedPreKey(signedPreKeyID uint32) *record.SignedPreKey {
 	result := js.Global().Get("signalDao").Call("getSignedPreKey", signedPreKeyID)
 	logger.Debug("Load Signed PreKey result: ", result)
-	if result == js.Undefined() {
+	if result.IsUndefined() {
 		return nil
 	}
 	recordResult := result.Get("record")
@@ -185,7 +185,7 @@ func (i *MixinSignedPreKeyStore) LoadSignedPreKey(signedPreKeyID uint32) *record
 
 func (i *MixinSignedPreKeyStore) LoadSignedPreKeys() []*record.SignedPreKey {
 	result := js.Global().Get("signalDao").Call("getAllSignedPreKeys")
-	if result == js.Undefined() {
+	if result.IsUndefined() {
 		return nil
 	}
 
@@ -205,7 +205,7 @@ func (i *MixinSignedPreKeyStore) StoreSignedPreKey(signedPreKeyID uint32, record
 
 func (i *MixinSignedPreKeyStore) ContainsSignedPreKey(signedPreKeyID uint32) bool {
 	result := js.Global().Get("signalDao").Call("getSignedPreKey", signedPreKeyID)
-	if result == js.Undefined() {
+	if result.IsUndefined() {
 		return false
 	}
 	return true
@@ -234,7 +234,7 @@ func (i *MixinSenderKeyStore) StoreSenderKey(senderKeyName *protocol.SenderKeyNa
 
 func (i *MixinSenderKeyStore) LoadSenderKey(senderKeyName *protocol.SenderKeyName) *groupRecord.SenderKey {
 	result := js.Global().Get("signalDao").Call("getSenderKey", senderKeyName.GroupID(), senderKeyName.Sender().String())
-	if result == js.Undefined() {
+	if result.IsUndefined() {
 		return groupRecord.NewSenderKey(i.serializer, i.stateSerializer)
 	}
 	recordResult := result.Get("record")
