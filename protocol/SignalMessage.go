@@ -6,10 +6,10 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/RadicalApp/libsignal-protocol-go/ecc"
-	"github.com/RadicalApp/libsignal-protocol-go/keys/identity"
-	"github.com/RadicalApp/libsignal-protocol-go/logger"
-	"github.com/RadicalApp/libsignal-protocol-go/util/bytehelper"
+	"github.com/sudhagarc/libsignal-protocol-go/ecc"
+	"github.com/sudhagarc/libsignal-protocol-go/keys/identity"
+	"github.com/sudhagarc/libsignal-protocol-go/logger"
+	"github.com/sudhagarc/libsignal-protocol-go/util/bytehelper"
 )
 
 const MacLength int = 8

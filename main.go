@@ -10,18 +10,18 @@ import (
 
 	"syscall/js"
 
-	"github.com/RadicalApp/libsignal-protocol-go/ecc"
-	"github.com/RadicalApp/libsignal-protocol-go/groups"
-	"github.com/RadicalApp/libsignal-protocol-go/keys/identity"
-	"github.com/RadicalApp/libsignal-protocol-go/keys/prekey"
-	"github.com/RadicalApp/libsignal-protocol-go/logger"
-	"github.com/RadicalApp/libsignal-protocol-go/protocol"
-	"github.com/RadicalApp/libsignal-protocol-go/provision"
-	"github.com/RadicalApp/libsignal-protocol-go/serialize"
-	"github.com/RadicalApp/libsignal-protocol-go/session"
-	"github.com/RadicalApp/libsignal-protocol-go/util/bytehelper"
-	"github.com/RadicalApp/libsignal-protocol-go/util/keyhelper"
-	"github.com/RadicalApp/libsignal-protocol-go/util/optional"
+	"github.com/sudhagarc/libsignal-protocol-go/ecc"
+	"github.com/sudhagarc/libsignal-protocol-go/groups"
+	"github.com/sudhagarc/libsignal-protocol-go/keys/identity"
+	"github.com/sudhagarc/libsignal-protocol-go/keys/prekey"
+	"github.com/sudhagarc/libsignal-protocol-go/logger"
+	"github.com/sudhagarc/libsignal-protocol-go/protocol"
+	"github.com/sudhagarc/libsignal-protocol-go/provision"
+	"github.com/sudhagarc/libsignal-protocol-go/serialize"
+	"github.com/sudhagarc/libsignal-protocol-go/session"
+	"github.com/sudhagarc/libsignal-protocol-go/util/bytehelper"
+	"github.com/sudhagarc/libsignal-protocol-go/util/keyhelper"
+	"github.com/sudhagarc/libsignal-protocol-go/util/optional"
 )
 
 func generateIdentityKeyPair(this js.Value, args []js.Value) interface{} {

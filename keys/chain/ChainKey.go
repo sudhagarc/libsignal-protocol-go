@@ -4,8 +4,8 @@ package chain
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"github.com/RadicalApp/libsignal-protocol-go/kdf"
-	"github.com/RadicalApp/libsignal-protocol-go/keys/message"
+	"github.com/sudhagarc/libsignal-protocol-go/kdf"
+	"github.com/sudhagarc/libsignal-protocol-go/keys/message"
 )
 
 var messageKeySeed = []byte{0x01}

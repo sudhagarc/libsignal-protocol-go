@@ -5,16 +5,16 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/RadicalApp/libsignal-protocol-go/ecc"
-	"github.com/RadicalApp/libsignal-protocol-go/keys/prekey"
-	"github.com/RadicalApp/libsignal-protocol-go/logger"
-	"github.com/RadicalApp/libsignal-protocol-go/protocol"
-	"github.com/RadicalApp/libsignal-protocol-go/ratchet"
-	"github.com/RadicalApp/libsignal-protocol-go/serialize"
-	"github.com/RadicalApp/libsignal-protocol-go/state/record"
-	"github.com/RadicalApp/libsignal-protocol-go/state/store"
-	"github.com/RadicalApp/libsignal-protocol-go/util/medium"
-	"github.com/RadicalApp/libsignal-protocol-go/util/optional"
+	"github.com/sudhagarc/libsignal-protocol-go/ecc"
+	"github.com/sudhagarc/libsignal-protocol-go/keys/prekey"
+	"github.com/sudhagarc/libsignal-protocol-go/logger"
+	"github.com/sudhagarc/libsignal-protocol-go/protocol"
+	"github.com/sudhagarc/libsignal-protocol-go/ratchet"
+	"github.com/sudhagarc/libsignal-protocol-go/serialize"
+	"github.com/sudhagarc/libsignal-protocol-go/state/record"
+	"github.com/sudhagarc/libsignal-protocol-go/state/store"
+	"github.com/sudhagarc/libsignal-protocol-go/util/medium"
+	"github.com/sudhagarc/libsignal-protocol-go/util/optional"
 )
 
 // Define error constants used for error messages.

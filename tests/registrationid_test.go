@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/RadicalApp/libsignal-protocol-go/util/keyhelper"
+	"github.com/sudhagarc/libsignal-protocol-go/util/keyhelper"
 )
 
 func TestRegistrationID(t *testing.T) {
