@@ -180,7 +180,7 @@ func (d *Cipher) DecryptMessageReturnKey(ciphertextMessage *protocol.PreKeySigna
 	}
 	// Store the session record in our session store.
 	d.sessionStore.StoreSession(d.remoteAddress, sessionRecord)
-	if !unsignedPreKeyID.IsEmpty {
+	if unsignedPreKeyID != nil && !unsignedPreKeyID.IsEmpty {
 		d.preKeyStore.RemovePreKey(unsignedPreKeyID.Value)
 	}
 	return plaintext, keys, nil

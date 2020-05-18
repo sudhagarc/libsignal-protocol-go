@@ -214,7 +214,11 @@ func (b *Builder) ProcessBundle(preKey *prekey.Bundle) error {
 	parameters.SetTheirIdentityKey(preKey.IdentityKey())
 	parameters.SetTheirSignedPreKey(theirSignedPreKey)
 	parameters.SetTheirRatchetKey(theirSignedPreKey)
-	parameters.SetTheirOneTimePreKey(theirOneTimePreKey)
+	if theirOneTimePreKeyID == nil {
+		parameters.SetTheirOneTimePreKey(nil)
+	} else {
+		parameters.SetTheirOneTimePreKey(theirOneTimePreKey)
+	}
 
 	// If this is a fresh record, archive our current state.
 	if !sessionRecord.IsFresh() {
